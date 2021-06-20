@@ -1,53 +1,49 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: xuwang <xuwang@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/06/13 14:43:05 by xuwang            #+#    #+#             */
+/*   Updated: 2021/06/20 17:15:51 by xuwang           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <signal.h>
 #include <unistd.h>
-#include <libc.h>
+#include <stdio.h>
+#include "minitalk.h"
 
-void ft_handle(int sig)
+static void	handle_sig(int sig)
 {
-    if (sig == SIGUSR1)
-    {
-        printf("Received SIGUSR1!\n");
-    }
-    else if (sig == SIGUSR2)
-    {
-        printf("Received SIGUSR2!\n");
-    }
+	static unsigned int		i = 0;
+	static unsigned char	c = 0;
+
+	if (sig == SIGUSR1)
+		c += 1 << i;
+	++i;
+	if (i == 8)
+	{
+		ft_putchar(c);
+		i = 0;
+		c = 0;
+	}
 }
 
-int main()
+int	main(void)
 {
-    pid_t pid;
+	pid_t	pid;
 
-    pid = getpid();
-    printf("%d\n", pid);
-
-    if (signal(SIGUSR1, ft_handle) == SIG_ERR)
-    {
-        perror("Can't set handler for SIGUSR1");
-        // exit(1);
-    }
-    if (signal(SIGUSR2, ft_handle) == SIG_ERR)
-    {
-        perror("Can't set handler for SIGUSR2");
-        // exit(1);
-    }
-
-    while(1);
-
-    pause();
+	pid = getpid();
+	if (pid == -1)
+		return (-1);
+	signal(SIGUSR1, handle_sig);
+	signal(SIGUSR2, handle_sig);
+	ft_putstr("PID = ");
+	ft_putnbr(pid);
+	ft_putchar('\n');
+	while (1)
+		pause();
+	return (0);
 }
-
-// A -> ascci : 65
-// 65 -> 1 BYTES -> 8 bits
-// 65 : 0100 0001
-//
-// loop :
-//
-//  -> client 1 -> server 1
-//  -> client 0 -> server 0
-//  -> client 0 -> server 0
-//  -> client 0 -> server 0
-//  -> client 0 -> server 0
-//  -> client 0 -> server 0
-//  -> client 1 -> server 1
-//  -> client 0 -> server 0
